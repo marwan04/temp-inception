@@ -10,6 +10,11 @@ WORKDIR /var/www/html
 # download wordpress to /usr/src (not /var/www/html, to avoid overwrite by volume)
 RUN curl -o /usr/src/wordpress.tar.gz https://wordpress.org/latest.tar.gz
 
+
+# install wp-cli
+RUN curl -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+ && chmod +x /usr/local/bin/wp
+
 COPY conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 COPY tools/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

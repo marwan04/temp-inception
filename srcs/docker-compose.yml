@@ -26,9 +26,14 @@ services:
       - .env
     secrets:
       - db_password
+      - wp_admin_password
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX}
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
     depends_on:
       - mariadb
     volumes:
@@ -61,4 +66,6 @@ secrets:
     file: ../secrets/db_root_password.txt
   db_password:
     file: ../secrets/db_password.txt
+  wp_admin_password:
+    file: ../secrets/wp_admin_password
 

@@ -5,19 +5,40 @@ set -eu
 mkdir -p /var/www/html
 chown -R www-data:www-data /var/www/html
 
-# if wordpress is not installed in volume, copy it in
+# if wordpress not yet extracted into volume, copy
 if [ ! -f /var/www/html/wp-config-sample.php ]; then
-  echo "WordPress files not found in volume, copying..."
+  echo "WordPress files not found in volume, extracting..."
   tar -xzf /usr/src/wordpress.tar.gz -C /var/www/html --strip-components=1
   chown -R www-data:www-data /var/www/html
 fi
 
-# wait for db to be ready
+# wait for mariadb to be ready
 echo "Waiting for MariaDB..."
 until mariadb -h mariadb -u"${MYSQL_USER}" -p"$(cat /run/secrets/db_password)" -e "SELECT 1;" "${MYSQL_DATABASE}" >/dev/null 2>&1; do
   sleep 2
 done
 
-echo "MariaDB is ready, starting php-fpm..."
-exec "$@"
+# configure wp-cli (skip if already installed)
+if ! wp core is-installed --path=/var/www/html --allow-root; then
+  echo "Configuring WordPress with wp-cli..."
+  wp config create \
+    --path=/var/www/html \
+    --allow-root \
+    --dbname="${MYSQL_DATABASE}" \
+    --dbuser="${MYSQL_USER}" \
+    --dbpass="$(cat /run/secrets/db_password)" \
+    --dbhost="mariadb" \
+    --dbprefix="${WORDPRESS_TABLE_PREFIX}"
 
+  wp core install \
+    --path=/var/www/html \
+    --allow-root \
+    --url="https://${DOMAIN_NAME}" \
+    --title="Inception Project" \
+    --admin_user="${WP_ADMIN_USER}" \
+    --admin_password="$(cat /run/secrets/wp_admin_password)" \
+    --admin_email="${WP_ADMIN_EMAIL}"
+fi
+
+echo "WordPress ready, starting php-fpm..."
+exec "$@"
