@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  mariadb:
+    container_name: mariadb
+    build:
+      context: ./requirements/mariadb
+    restart: always
+    env_file:
+      - .env
+    secrets:
+      - db_root_password
+      - db_password
+    volumes:
+      # Host bind to /home/<login>/data to match the subject rule
+      - /home/${LOGIN}/data/mariadb:/var/lib/mysql
+    networks:
+      - inception
+
+  wordpress:
+    container_name: wordpress
+    build:
+      context: ./requirements/wordpress
+    restart: always
+    env_file:
+      - .env
+    secrets:
+      - db_password
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+    depends_on:
+      - mariadb
+    volumes:
+      - /home/${LOGIN}/data/wordpress:/var/www/html
+    networks:
+      - inception
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./requirements/nginx
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - wordpress
+    ports:
+      - "443:443"
+    volumes:
+      - /home/${LOGIN}/data/wordpress:/var/www/html
+    networks:
+      - inception
+
+networks:
+  inception:
+    driver: bridge
+
+secrets:
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  db_password:
+    file: ../secrets/db_password.txt
+
