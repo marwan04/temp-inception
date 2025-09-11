@@ -40,5 +40,15 @@ if ! wp core is-installed --path=/var/www/html --allow-root; then
     --admin_email="${WP_ADMIN_EMAIL}"
 fi
 
+# install & activate redis cache plugin if not already
+if ! wp plugin is-installed redis-cache --path=/var/www/html --allow-root; then
+  echo "Installing Redis Cache plugin..."
+  wp plugin install redis-cache --activate --path=/var/www/html --allow-root
+
+  # enable object cache
+  wp redis enable --path=/var/www/html --allow-root
+fi
+
+
 echo "WordPress ready, starting php-fpm..."
 exec "$@"

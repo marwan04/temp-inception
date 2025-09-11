@@ -57,6 +57,60 @@ services:
     networks:
       - inception
 
+  redis:
+    container_name: redis
+    build:
+      context: ./requirements/bonus/redis
+    restart: always
+    volumes:
+      - /home/${LOGIN}/data/redis:/data
+    networks:
+      - inception
+
+  adminer:
+    container_name: adminer
+    build:
+      context: ./requirements/bonus/adminer
+    restart: always
+    depends_on:
+      - mariadb
+    networks:
+      - inception
+    ports:
+      - "8080:8080"
+
+  ftp:
+    container_name: ftp
+    build:
+      context: ./requirements/bonus/ftp
+    restart: always
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    volumes:
+      - /home/${LOGIN}/data/wordpress:/home/ftpuser/wordpress
+    secrets:
+      - wp_admin_password
+    networks:
+      - inception
+
+  static:
+    container_name: static
+    build:
+      context: ./requirements/bonus/static
+    restart: always
+    networks:
+      - inception
+    ports:
+      - "8081:80"
+
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    restart: always
+    networks:
+      - inception
+
 networks:
   inception:
     driver: bridge
