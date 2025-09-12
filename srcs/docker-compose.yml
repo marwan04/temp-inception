@@ -12,7 +12,6 @@ services:
       - db_root_password
       - db_password
     volumes:
-      # Host bind to /home/<login>/data to match the subject rule
       - /home/${LOGIN}/data/mariadb:/var/lib/mysql
     networks:
       - inception
